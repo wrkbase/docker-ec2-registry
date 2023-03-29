@@ -1,0 +1,42 @@
+
+$ chmod 755 ./ec2software.sh 
+$ sudo reboot --reboot
+$ sudo usermod -a -G docker ubuntu
+$ ssh-keygen -t rsa
+$ cat ~/.ssh/authorized_keys 
+$ cat ~/.ssh/id_rsa
+$ sudo apt install gpg pass apache2-utils make
+$ wget https://github.com/docker/docker-credential-helpers/releases/download/v0.6.3/docker-credential-pass-v0.6.3-amd64.tar.gz
+$ tar -zxvf docker-credential-pass-v0.6.3-amd64.tar.gz ; chmod a+x docker-credential-pass; sudo mv docker-credential-pass /usr/bin
+$ which docker-credential-pass 
+$ mkdir -p ~/registry/{certs,auth}
+$ cd registry/
+$ htpasswd -Bbn testuser password > auth/htpasswd
+$ openssl req -newkey rsa:4096 -nodes -sha256 -addext "subjectAltName = DNS:docker.piebill.com" -keyout certs/domain.key -x509 -days 365 -out certs/domain.crt
+$ sudo mkdir -p /etc/docker/certs.d/docker.piebill.com/
+$ sudo cp /home/ubuntu/registry/certs/domain.crt /etc/docker/certs.d/docker.piebill.com/ 
+$ gpg --generate-key
+$ pass init 7643FB16548F22A3A02820111E6DC3F88FF17262
+$ pass insert docker-credential-helpers/docker-pass-initialized-check
+$ docker-credential-pass list
+$ pass show docker-credential-helpers/docker-pass-initialized-check
+$ docker pull busybox
+$ docker ps
+$ docker image ls
+$ docker image tag busybox docker.piebill.com/sribybox
+$ docker push docker.piebill.com/sribybox
+$ cd ~;  docker run -d   --restart=always   --name registry   -v $PWD/registry/certs:/certs   -v $PWD/registry/auth:/auth   -e REGISTRY_HTTP_ADDR=0.0.0.0:443   -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt   -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key   -e REGISTRY_AUTH=htpasswd   -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm"   -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd   -p 443:443   registry:2
+
+$ echo '{
+        "auths": {
+                "docker.piebill.com": {
+                        "auth": ""
+                }
+        }
+}'>~/.docker/config.json
+
+
+$ docker login docker.piebill.com
+$ docker pull docker.piebill.com/sri-hello-world
+$ sudo ls -l  /etc/docker/certs.d/docker.piebill.com/ 
+$ wget -qO- http://instance-data/latest/meta-data/public-ipv4; echo
